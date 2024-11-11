@@ -1,0 +1,21 @@
+CREATE OR REPLACE PACKAGE stock_comparator_pkg AS
+
+    -- Load data from exchange CSV into the database
+    PROCEDURE load_exchange_data(p_file_path IN VARCHAR2);
+
+    -- Load data from depository CSV into the database
+    PROCEDURE load_depository_data(p_file_path IN VARCHAR2);
+
+    -- Compare the data from exchange and depository
+    PROCEDURE compare_data;
+
+    -- Log any mismatches found during the comparison
+    PROCEDURE log_mismatch(p_user_id IN NUMBER, p_stock_id IN NUMBER, 
+                           p_exchange_count IN NUMBER, p_depository_count IN NUMBER,
+                           p_mismatch_reason IN VARCHAR2);
+
+    -- Log data load success/failure for tracking purposes
+    PROCEDURE log_data_load(p_source IN VARCHAR2, p_status IN VARCHAR2, p_file_name IN VARCHAR2);
+
+END stock_comparator_pkg;
+/
