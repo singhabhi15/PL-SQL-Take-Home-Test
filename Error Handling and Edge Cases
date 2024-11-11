@@ -1,0 +1,14 @@
+BEGIN
+    -- Simulate loading CSV
+    -- Hypothetical call to load CSV into the table
+    -- load_csv_data(p_file_path, 'exchange_stock_data');
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        -- Handle case where no rows are loaded
+        log_data_load('EXCHANGE', 'FAILURE', p_file_path);
+        RAISE_APPLICATION_ERROR(-20001, 'No data found in file: ' || p_file_path);
+    WHEN OTHERS THEN
+        -- Catch all other errors
+        log_data_load('EXCHANGE', 'FAILURE', p_file_path);
+        RAISE;
+END;
