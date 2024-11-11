@@ -1,0 +1,79 @@
+CREATE OR REPLACE PACKAGE BODY stock_comparator_pkg AS
+
+    -- Utility procedure to load exchange data
+    PROCEDURE load_exchange_data(p_file_path IN VARCHAR2) IS
+    BEGIN
+        -- Perform file loading here (using external table, UTL_FILE, etc.)
+        -- Simulated loading step, replace with actual code for loading CSV into exchange_stock_data
+        BEGIN
+            -- Hypothetical file loading code
+            -- load_csv_data(p_file_path, 'exchange_stock_data');
+            
+            -- Log successful load
+            log_data_load('EXCHANGE', 'SUCCESS', p_file_path);
+        EXCEPTION
+            WHEN OTHERS THEN
+                -- Log failure in case of error
+                log_data_load('EXCHANGE', 'FAILURE', p_file_path);
+                RAISE;
+        END;
+    END load_exchange_data;
+
+    -- Utility procedure to load depository data
+    PROCEDURE load_depository_data(p_file_path IN VARCHAR2) IS
+    BEGIN
+        -- Perform file loading here (using external table, UTL_FILE, etc.)
+        -- Simulated loading step, replace with actual code for loading CSV into depository_stock_data
+        BEGIN
+            -- Hypothetical file loading code
+            -- load_csv_data(p_file_path, 'depository_stock_data');
+            
+            -- Log successful load
+            log_data_load('DEPOSITORY', 'SUCCESS', p_file_path);
+        EXCEPTION
+            WHEN OTHERS THEN
+                -- Log failure in case of error
+                log_data_load('DEPOSITORY', 'FAILURE', p_file_path);
+                RAISE;
+        END;
+    END load_depository_data;
+
+    -- Comparison logic for stock ownership data between exchange and depository
+    PROCEDURE compare_data IS
+    BEGIN
+        FOR rec IN (
+            SELECT e.user_id, e.stock_id, e.stock_quantity AS exchange_count,
+                   d.stock_quantity AS depository_count
+            FROM exchange_stock_data e
+            JOIN depository_stock_data d
+            ON e.user_id = d.user_id AND e.stock_id = d.stock_id
+            WHERE e.stock_quantity != d.stock_quantity
+        ) LOOP
+            -- If mismatch occurs, log the mismatch
+            log_mismatch(rec.user_id, rec.stock_id, rec.exchange_count, rec.depository_count, 
+                          'Stock quantities do not match');
+        END LOOP;
+    END compare_data;
+
+    -- Procedure to log mismatches between exchange and depository data
+    PROCEDURE log_mismatch(p_user_id IN NUMBER, p_stock_id IN NUMBER, 
+                            p_exchange_count IN NUMBER, p_depository_count IN NUMBER,
+                            p_mismatch_reason IN VARCHAR2) IS
+    BEGIN
+        -- Insert mismatch details into the log table
+        INSERT INTO stock_comparison_results (
+            user_id, stock_id, exchange_count, depository_count, mismatch_reason
+        ) VALUES (
+            p_user_id, p_stock_id, p_exchange_count, p_depository_count, p_mismatch_reason
+        );
+    END log_mismatch;
+
+    -- Log data load status (success/failure)
+    PROCEDURE log_data_load(p_source IN VARCHAR2, p_status IN VARCHAR2, p_file_name IN VARCHAR2) IS
+    BEGIN
+        INSERT INTO data_load_log (source, status, file_name, timestamp)
+        VALUES (p_source, p_status, p_file_name, CURRENT_TIMESTAMP);
+    END log_data_load;
+
+END stock_comparator_pkg;
+/
